@@ -254,17 +254,20 @@ void* memset32(void* pv_dst, uint32_t ul_val, size_t x_len)
 
   uint32_t* pul_dst = (uint32_t*) pv_dst;
 
-  if (ul_val != 0) {
-    ul_val |= ((ul_val << 8) & 0x0000FF00);
-    ul_val |= ((ul_val << 16) & 0x00FF0000);
-    ul_val |= ((ul_val << 24) & 0xFF000000);
-  }
+  if (x_len > sizeof(uint32_t)) {
+    if (ul_val != 0) {
+      if (ul_val <= 0x000000FF) {
+        ul_val |= (ul_val << 8) | (ul_val << 16) | (ul_val << 24);
+      } else if ((ul_val & 0xFFFF0000) == 0UL) {
+        ul_val |= (ul_val << 16);
+      }
+    }
 
-  while (x_len >= sizeof(uint32_t)) {
-    *pul_dst = ul_val;
-
-    ++pul_dst;
-    x_len -= sizeof(uint32_t);
+    do {
+      *pul_dst = ul_val;
+      ++pul_dst;
+      x_len -= sizeof(uint32_t);
+    } while (x_len >= sizeof(uint32_t));
   }
 
   uint8_t* puc_dst = (uint8_t*) pul_dst;
